@@ -7,11 +7,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const secret = req.headers["x-webhook-secret"];
-  return res.status(200).json({
-    envSecretExists: !!process.env.WEBHOOK_SECRET,
-    envSecret: process.env.WEBHOOK_SECRET || "MISSING",
-    headerSecret: req.headers["x-webhook-secret"],
-  });
   if (!secret || secret !== process.env.WEBHOOK_SECRET) {
     return res.status(401).json({ error: "Unauthorized" });
   }
