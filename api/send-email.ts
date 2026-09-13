@@ -32,14 +32,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       from: process.env.GMAIL_USER,
       to: record.to_email,
       subject: record.subject,
-      text: record.body,
+      html: record.body, // <-- now renders as HTML
     });
 
     return res
       .status(200)
       .json({
         success: true,
-        message: "Email sent successfully via Gmail API",
+        message: "Email sent successfully via Gmail",
       });
   } catch (error) {
     console.error("Error sending email:", error);

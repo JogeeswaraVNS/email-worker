@@ -21,11 +21,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    if (!process.env.TITAN_USER_ESCHURE || !process.env.TITAN_PASS_ESCHURE) {
+    if (!process.env.TITAN_USER_JAGENTSSTUDIO || !process.env.TITAN_PASS_JAGENTSSTUDIO) {
       return res.status(500).json({
         error: "Missing Titan credentials in environment variables",
-        TITAN_USER_ESCHURE_present: !!process.env.TITAN_USER_ESCHURE,
-        TITAN_PASS_ESCHURE_present: !!process.env.TITAN_PASS_ESCHURE,
+        TITAN_USER_JAGENTSSTUDIO_present: !!process.env.TITAN_USER_JAGENTSSTUDIO,
+        TITAN_PASS_JAGENTSSTUDIO_present: !!process.env.TITAN_PASS_JAGENTSSTUDIO,
       });
     }
 
@@ -34,8 +34,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       port: 465,
       secure: true,
       auth: {
-        user: process.env.TITAN_USER_ESCHURE,
-        pass: process.env.TITAN_PASS_ESCHURE,
+        user: process.env.TITAN_USER_JAGENTSSTUDIO,
+        pass: process.env.TITAN_PASS_JAGENTSSTUDIO,
       },
     });
 
@@ -55,7 +55,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const info = await transporter.sendMail({
-      from: process.env.TITAN_USER_ESCHURE,
+      from: process.env.TITAN_USER_JAGENTSSTUDIO,
       to: record.to_email,
       subject: record.subject,
       html: record.body, // <-- now treats body as HTML instead of plain text
