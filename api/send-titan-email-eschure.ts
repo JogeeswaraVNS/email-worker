@@ -15,22 +15,49 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { record } = req.body;
 
     if (!record || !record.to_email || !record.subject || !record.body) {
-      return res
-        .status(400)
-        .json({ error: "Invalid payload from Supabase webhook" });
+      return res.status(400).json({
+        error: "Invalid payload from Supabase webhook",
+        received_body: req.body,
+      });
+    }
+
+    // Check env vars are actually loaded before even trying to connect
+    if (!process.env.TITAN_USER_ESCHURE || !process.env.TITAN_PASS_ESCHURE) {
+      return res.status(500).json({
+        error: "Missing Titan credentials in environment variables",
+        TITAN_USER_ESCHURE_present: !!process.env.TITAN_USER_ESCHURE,
+        TITAN_PASS_ESCHURE_present: !!process.env.TITAN_PASS_ESCHURE,
+      });
     }
 
     const transporter = nodemailer.createTransport({
       host: "smtp.titan.email",
       port: 465,
-      secure: true, // true for port 465 (SSL), false for 587 (STARTTLS)
+      secure: true,
       auth: {
-        user: process.env.TITAN_USER_ESCHURE,   // e.g. you@yourdomain.com
-        pass: process.env.TITAN_PASS_ESCHURE,   // Titan mailbox password
+        user: process.env.TITAN_USER_ESCHURE,
+        pass: process.env.TITAN_PASS_ESCHURE,
       },
     });
 
-    await transporter.sendMail({
+    // Verify SMTP connection/auth before sending, so we can report
+    // connection issues separately from send issues
+    try {
+      await transporter.verify();
+    } catch (verifyError: any) {
+      return res.status(500).json({
+        error: "SMTP connection/auth failed",
+        details: {
+          message: verifyError?.message,
+          code: verifyError?.code,
+          command: verifyError?.command,
+          responseCode: verifyError?.responseCode,
+          response: verifyError?.response,
+        },
+      });
+    }
+
+    const info = await transporter.sendMail({
       from: process.env.TITAN_USER_ESCHURE,
       to: record.to_email,
       subject: record.subject,
@@ -40,9 +67,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({
       success: true,
       message: "Email sent successfully via Titan SMTP",
+      info: {
+        messageId: info.messageId,
+        accepted: info.accepted,
+        rejected: info.rejected,
+        response: info.response,
+      },
     });
-  } catch (error) {
-    console.error("Error sending email:", error);
-    return res.status(500).json({ error: "Failed to send email" });
+  } catch (error: any) {
+    return res.status(500).json({
+      error: "Failed to send email",
+      details: {
+        message: error?.message,
+        name: error?.name,
+        code: error?.code,
+        command: error?.command,
+        responseCode: error?.responseCode,
+        response: error?.response,
+        stack: error?.stack,
+      },
+    });
   }
 }
