@@ -21,7 +21,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // Check env vars are actually loaded before even trying to connect
     if (!process.env.TITAN_USER_ESCHURE || !process.env.TITAN_PASS_ESCHURE) {
       return res.status(500).json({
         error: "Missing Titan credentials in environment variables",
@@ -31,7 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const transporter = nodemailer.createTransport({
-      host: "smtp.titan.email",
+      host: "smtpout.secureserver.net", // <-- fixed: GoDaddy Professional Email, not smtp.titan.email
       port: 465,
       secure: true,
       auth: {
@@ -40,8 +39,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
     });
 
-    // Verify SMTP connection/auth before sending, so we can report
-    // connection issues separately from send issues
     try {
       await transporter.verify();
     } catch (verifyError: any) {
