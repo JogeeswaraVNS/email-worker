@@ -4,6 +4,6 @@
   "private": true,
   "dependencies": {
     "@vercel/node": "^5.3.24",
-    "nodemailer": "^7.0.5"
+    "nodemailer": "^7.0.13"
   }
 }

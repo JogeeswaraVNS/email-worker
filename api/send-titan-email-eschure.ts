@@ -14,7 +14,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const { record } = req.body;
 
-    if (!record || !record.to_email || !record.subject || !record.body) {
+    // Match actual email_queue columns
+    if (!record || !record.recipient_email || !record.subject || !record.html_body) {
       return res.status(400).json({
         error: "Invalid payload from Supabase webhook",
         received_body: req.body,
@@ -56,9 +57,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const info = await transporter.sendMail({
       from: process.env.TITAN_USER_ESCHURE,
-      to: record.to_email,
+      to: record.recipient_name
+        ? `"${record.recipient_name}" <${record.recipient_email}>`
+        : record.recipient_email,
       subject: record.subject,
-      html: record.body, // <-- now treats body as HTML instead of plain text
+      html: record.html_body,
     });
 
     return res.status(200).json({
